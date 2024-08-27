@@ -1,7 +1,10 @@
+import type { User as SupabaseUser } from '@supabase/auth-js';
 export interface Poll {
   id: string; // uuid
   title: string; // text
   created_at: string; // ISO string format of the date
+  user_id: string; // uuid
+  visibility: string // 'public' || 'private'
 }
 
 export interface Vote {
@@ -11,8 +14,17 @@ export interface Vote {
   created_at: string; // ISO string format of the date
 }
 
-export interface User {
-  id: string; // uuid
-  email: string; // text
-  created_at: string; // ISO string format of the date
+
+export type User = SupabaseUser;
+
+
+export interface VoteData {
+  option_id: string;
+  count: number;
+}
+
+export interface PieChartData {
+  id: string
+  option: string;
+  vote_count: number;
 }

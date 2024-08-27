@@ -17,9 +17,6 @@ export const load: PageLoad = async ({ params }) => {
       .eq('id', poll_id)
       .single();
 
-    console.log('Poll Data:', pollData);
-    console.error('Poll Error:', pollError);
-
     if (pollError || !pollData) {
       console.error('Error fetching poll:', pollError?.message || 'Poll not found');
       return {
@@ -33,9 +30,6 @@ export const load: PageLoad = async ({ params }) => {
       .from('Options')
       .select('*')
       .eq('poll_id', poll_id);
-
-    console.log('Options Data:', optionsData);
-    console.error('Options Error:', optionsError);
 
     if (optionsError) {
       console.error('Error fetching poll options:', optionsError.message);
@@ -52,10 +46,18 @@ export const load: PageLoad = async ({ params }) => {
     };
 
   } catch (error) {
-    console.error('Unexpected error:', error.message);
-    return {
-      status: 500,
-      error: new Error('Unexpected error occurred')
-    };
+    if (error instanceof Error) {
+      console.error('Unexpected error:', error.message);
+      return {
+        status: 500,
+        error: new Error('Unexpected error occurred')
+      };
+    } else {
+      console.error('Unexpected non-Error:', error);
+      return {
+        status: 500,
+        error: new Error('An unexpected non-Error occurred')
+      };
+    }
   }
 };
