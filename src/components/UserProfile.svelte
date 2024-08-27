@@ -2,19 +2,8 @@
   import { onMount, onDestroy } from 'svelte';
   import { supabase } from '$lib/supabaseClient';
   import { writable } from 'svelte/store';
+  import { user, fetchUser } from '$lib/users';
 
-  let user = writable<any>(null);
-
-  // Function to fetch the current user
-  async function fetchUser() {
-    const { data: { user: currentUser }, error } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error('Error fetching user:', error.message);
-    } else {
-      user.set(currentUser);
-    }
-  }
 
   // Fetch user on component mount
   onMount(async () => {
