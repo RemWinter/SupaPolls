@@ -1,63 +1,40 @@
-// src/routes/polls/[poll_id]/+page.ts
-
+import { fetchPollById, fetchVoteCounts } from '$lib/polls';
 import { supabase } from '$lib/supabaseClient';
+import type { Poll, Option, FetchPollResult } from '$lib/types';
+import { fetchUser, user } from '$lib/users';
 import type { PageLoad } from './$types';
-
-type Poll = { id: string; title: string };
-type Option = { option: string };
 
 export const load: PageLoad = async ({ params }) => {
   const { poll_id } = params;
+  
+  await fetchUser();
+  let userId: string | undefined;
+
+  user.subscribe(value => {
+    userId = value?.id;
+  })();
 
   try {
-    // Fetch poll details
-    const { data: pollData, error: pollError } = await supabase
-      .from('Polls')
-      .select('*')
-      .eq('id', poll_id)
-      .single();
+    // Fetch the poll data and options
+    let props: FetchPollResult = await fetchPollById(poll_id, userId);
+    
+    // Fetch the vote counts and update options
+    const optionsWithVoteCount = await fetchVoteCounts(poll_id, props.options);
 
-    if (pollError || !pollData) {
-      console.error('Error fetching poll:', pollError?.message || 'Poll not found');
-      return {
-        status: 404,
-        error: new Error('Poll not found')
-      };
-    }
-
-    // Fetch poll options
-    const { data: optionsData, error: optionsError } = await supabase
-      .from('Options')
-      .select('*')
-      .eq('poll_id', poll_id);
-
-    if (optionsError) {
-      console.error('Error fetching poll options:', optionsError.message);
-      return {
-        status: 500,
-        error: new Error('Error fetching poll options')
-      };
-    }
+    // Return the data as expected by the page
     return {
+        poll: props.poll,
+        options: optionsWithVoteCount
+    };
+  } catch (error) {
+    // Handle error, return a consistent structure
+    return {
+      status: 500,
+      error: new Error('Failed to load poll data'),
       props: {
-        poll: pollData as Poll,
-        options: optionsData as Option[]
+        poll: null, // or provide a default structure if `poll` can't be null
+        options: [],
       }
     };
-
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Unexpected error:', error.message);
-      return {
-        status: 500,
-        error: new Error('Unexpected error occurred')
-      };
-    } else {
-      console.error('Unexpected non-Error:', error);
-      return {
-        status: 500,
-        error: new Error('An unexpected non-Error occurred')
-      };
-    }
   }
 };

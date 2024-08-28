@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
   let isOpen = false;
@@ -16,7 +16,7 @@
 
 </style>
 
-<nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
+<nav class="flex items-center justify-between p-6 lg:px-8 h-nav-height bg-navBackground" aria-label="Global">
   <div class="flex lg:flex-1">
     <a href="#" class="-m-1.5 p-1.5 w-20 h-20">
       <span class="sr-only">SupaPolls</span>
@@ -44,11 +44,11 @@
 <div class={isOpen ? "lg:hidden fixed inset-0 z-50" : "lg:hidden fixed inset-0 z-50 hidden"} role="dialog" aria-modal="true">
   <!-- Background backdrop, show/hide based on slide-over state. -->
   <div class="fixed inset-0 z-50 bg-black opacity-50" on:click={closeMenu}></div>
-  <div class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+  <div class="pt-[11px] fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
     <div class="flex items-center justify-between">
       <a href="#" class="-m-1.5 p-1.5">
         <span class="sr-only">SupaPolls</span>
-        <img class="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="">
+        <img class="h-[68px] w-[68px]" src="/supa_polls_logo_cleaned.png" alt="">
       </a>
       <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700" on:click={closeMenu}>
         <span class="sr-only">Close menu</span>
