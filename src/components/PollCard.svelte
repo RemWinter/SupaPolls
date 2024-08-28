@@ -53,13 +53,13 @@
     <div class="inline-flex border rounded-md overflow-hidden">
       {#each options as option, i}
         <button
-          class="px-4 py-2 font-medium text-gray-700 bg-white focus:outline-none focus:bg-blue-500 focus:text-white 
+          class="px-4 py-2 font-medium text-gray-700 bg-white 
                   {i === 0 ? 'rounded-l-md' : ''} 
                   {i === options.length - 1 ? 'rounded-r-md' : ''} 
                   {i < options.length - 1 ? 'border-r' : ''}"
           on:click={() => handleVote(option.id)}
         >
-          {option.option}
+          {option.option} <br><span class="text-xs">{option.vote_count} {option.vote_count === 1 ? 'vote' : 'votes'}</span>
         </button>
       {/each}
     </div>
