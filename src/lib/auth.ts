@@ -24,6 +24,7 @@ export async function signIn(email: string, password: string) {
     console.error('Error signing in:', error.message);
   } else {
     console.log('User signed in:', data);
+    window.location.assign('/profile')
   }
 }
 
@@ -34,6 +35,7 @@ export async function signOut() {
     console.error('Error signing out:', error.message);
   } else {
     console.log('User signed out');
+    window.location.assign('/polls')
   }
 }
 

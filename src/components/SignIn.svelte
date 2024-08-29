@@ -43,7 +43,6 @@
 
     <p class="mt-10 text-center text-sm text-gray-500">
       Not a member?
-      <a href="#" class="font-semibold leading-6 text-brandBlue hover:text-brandBlue">Start a 14 day free trial</a>
-    </p>
+      <a href="/signup" class="font-semibold leading-6 text-brandBlue hover:text-brandBlue">Sign Up</a>
   </div>
 </div>

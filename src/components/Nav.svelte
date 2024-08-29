@@ -1,5 +1,20 @@
 <script lang="ts">
+	import { signIn, signOut } from '$lib/auth';
+	import { fetchUser, user } from '$lib/users';
   import { onMount } from 'svelte';
+
+  let loggedIn: boolean | null = null
+
+  onMount(() => {
+    fetchUser()
+    if ($user) {
+      loggedIn = true
+    } else {
+      loggedIn = false
+    }
+
+    console.log(loggedIn)
+  })
 
   let isOpen = false;
 
@@ -9,6 +24,10 @@
   
   function closeMenu() {
     isOpen = false;
+  }
+
+  const handleAuth = () => {
+    loggedIn ? signOut() : window.location.assign('/login')
   }
 </script>
 
@@ -32,12 +51,12 @@
     </button>
   </div>
   <div class="hidden lg:flex lg:gap-x-12">
-    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Create</a>
-    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Browse</a>
+    <a href="/polls/new" class="text-sm font-semibold leading-6 text-gray-900">Create</a>
+    <a href="/polls" class="text-sm font-semibold leading-6 text-gray-900">Browse</a>
     <a href="#" class="text-sm font-semibold leading-6 text-gray-900">About</a>
   </div>
   <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-    <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+    <a on:click={handleAuth} href='' class="text-sm font-semibold leading-6 text-gray-900">{!loggedIn ? 'Log in' : 'Log out'} <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
 
@@ -60,12 +79,12 @@
     <div class="mt-6 flow-root">
       <div class="-my-6 divide-y divide-gray-500/10">
         <div class="space-y-2 py-6">
-          <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>Create</a>
-          <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>Browse</a>
+          <a href="/polls/new" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>Create</a>
+          <a href="/polls" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>Browse</a>
           <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>About</a>
         </div>
         <div class="py-6">
-          <a href="#" class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>Log in</a>
+          <a on:click={handleAuth} href="" class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" on:click={closeMenu}>{!loggedIn ? 'Log in' : 'Log out'}</a>
         </div>
       </div>
     </div>

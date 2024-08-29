@@ -40,6 +40,7 @@ export async function createPoll(title: string, description: string, options: st
       console.error('Error creating poll options:', optionsError);
       return;
     }
+    window.location.assign(`/polls/${pollData.id}`)
   }
 }
 
