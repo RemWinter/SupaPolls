@@ -16,25 +16,20 @@ export const load: PageLoad = async ({ params }) => {
 
   try {
     // Fetch the poll data and options
-    let props: FetchPollResult = await fetchPollById(poll_id, userId);
-    
-    // Fetch the vote counts and update options
-    const optionsWithVoteCount = await fetchVoteCounts(poll_id, props.options);
+    let res: any = await fetchPollById(poll_id, false);
 
     // Return the data as expected by the page
     return {
-        poll: props.poll,
-        options: optionsWithVoteCount
+        poll: res.pollData,
+        error: null,
+        status: 200
     };
   } catch (error) {
     // Handle error, return a consistent structure
     return {
       status: 500,
       error: new Error('Failed to load poll data'),
-      props: {
-        poll: null, // or provide a default structure if `poll` can't be null
-        options: [],
-      }
+      poll: null
     };
   }
 };

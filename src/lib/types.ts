@@ -6,12 +6,15 @@ export interface Poll {
   created_at: string; // ISO string format of the date
   user_id: string; // uuid
   visibility: string // 'public' || 'private'
+  options: Option[]
 }
 
 export interface Option {
   id: string; // text
   option: string; // text
   vote_count: number; // number
+  votes: Vote[];
+  voteCount?: number
 }
 
 export interface Vote {

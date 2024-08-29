@@ -1,14 +1,15 @@
 <script lang="ts">
   import { onMount, afterUpdate } from 'svelte';
   import * as d3 from 'd3';
-  import type { PieChartData } from '$lib/types';
+  import type { Option } from '$lib/types';
 
-  export let data: PieChartData[] = [];
+  export let data: Option[] = [];
 
-  let svg: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
-  let arc: d3.Arc<any, d3.PieArcDatum<PieChartData>>;
-  let labelArc: d3.Arc<any, d3.PieArcDatum<PieChartData>>;
-  let pie: d3.Pie<unknown, PieChartData>;
+  let svgElement: SVGSVGElement;
+  let svg: d3.Selection<SVGGElement, unknown, null, undefined>;
+  let arc: d3.Arc<any, d3.PieArcDatum<Option>>;
+  let labelArc: d3.Arc<any, d3.PieArcDatum<Option>>;
+  let pie: d3.Pie<unknown, Option>;
   let color: d3.ScaleOrdinal<string, string>;
 
   const width = 400;
@@ -39,23 +40,23 @@
   }
 
   onMount(() => {
-    svg = d3.select('#pie-chart')
+    svg = d3.select(svgElement)
       .attr('width', width)
       .attr('height', height)
-      .append('g')
+      .append<SVGGElement>('g') // Correct type of selection
       .attr('transform', `translate(${width / 2}, ${height / 2})`);
 
     color = d3.scaleOrdinal(d3.schemeCategory10);
 
-    pie = d3.pie<PieChartData>()
-      .value(d => d.vote_count)
+    pie = d3.pie<unknown, Option>()
+      .value(d => d.votes.length)
       .sort(null);
 
-    arc = d3.arc<d3.PieArcDatum<PieChartData>>()
+    arc = d3.arc<d3.PieArcDatum<Option>>()
       .outerRadius(radius - 10)
       .innerRadius(0);
 
-    labelArc = d3.arc<d3.PieArcDatum<PieChartData>>()
+    labelArc = d3.arc<d3.PieArcDatum<Option>>()
       .outerRadius(radius - 40)
       .innerRadius(radius - 40);
 
@@ -67,7 +68,7 @@
   });
 </script>
 
-<svg id="pie-chart"></svg>
+<svg bind:this={svgElement}></svg>
 
 <style>
   svg {

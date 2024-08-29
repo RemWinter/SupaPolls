@@ -13,7 +13,7 @@ export async function createPoll(title: string, description: string, options: st
 
   // Insert poll into Polls table
   const { data: pollData, error: pollError } = await supabase
-    .from('Polls')
+    .from('polls')
     .insert([{ title: title, description: description, visibility: isPublic ? 'public' : 'private' }])
     .select()
     .single();
@@ -33,7 +33,7 @@ export async function createPoll(title: string, description: string, options: st
     }));
 
     const { data: optionsData, error: optionsError } = await supabase
-      .from('Options')
+      .from('options')
       .insert(optionsToInsert);
 
     if (optionsError) {
@@ -43,7 +43,7 @@ export async function createPoll(title: string, description: string, options: st
   }
 }
 
-export async function vote(optionId: string, poll: Poll, options: any[]): Promise<OptionWithVoteCount[] | Error | PostgrestError> { 
+export async function vote(optionId: string, poll: Poll, options: any[]) { 
   await fetchUser();
   let userId: string | undefined;
 
@@ -57,7 +57,7 @@ export async function vote(optionId: string, poll: Poll, options: any[]): Promis
 
   // Check if the user has already voted in this poll
   const { data: existingVote, error: voteCheckError } = await supabase
-    .from('Votes')
+    .from('votes')
     .select('id')
     .eq('poll_id', poll.id)
     .eq('user_id', userId)
@@ -71,7 +71,7 @@ export async function vote(optionId: string, poll: Poll, options: any[]): Promis
   if (existingVote) {
     // Delete the existing vote
     const { error: deleteError } = await supabase
-      .from('Votes')
+      .from('votes')
       .delete()
       .eq('id', existingVote.id);
 
@@ -83,7 +83,7 @@ export async function vote(optionId: string, poll: Poll, options: any[]): Promis
 
   // Insert the new vote
   const { data, error } = await supabase
-    .from('Votes')
+    .from('votes')
     .insert([{ poll_id: poll.id, option_id: optionId, user_id: userId }]);
 
   if (error) {
@@ -91,14 +91,9 @@ export async function vote(optionId: string, poll: Poll, options: any[]): Promis
     return error;
   }
 
-  // Update the options array with the new vote count
-  options = options.map(option => 
-    option.id === optionId ? { ...option, count: option.count + 1 } : option
-  );
+  const res = await fetchPollById(poll.id, false)
 
-  const optionsWithVoteCount = await fetchVoteCounts(poll.id, options);
-
-  return optionsWithVoteCount;
+  return res.pollData;
 }
 
 export async function getOptionIdsByPoll(pollId: string): Promise<string[] | null> {
@@ -125,18 +120,23 @@ export async function getVoteCountsByOptions(optionIds: string[]): Promise<VoteD
   // Map 'vote_count' to 'count' and return the new structure
   const mappedData: VoteData[] = data.map((item: { option_id: string; vote_count: number }) => ({
     option_id: item.option_id,
-    count: item.vote_count, // Map vote_count to count
+    count: item.vote_count,
   }));
 
   return mappedData;
 }
 
-export async function fetchPollById(poll_id: string, userId: string | undefined): Promise<FetchPollResult> {
+export async function fetchPollById(poll_id: string, dataOnly: boolean) {
   try {
-    // Fetch poll details
     const { data: pollData, error: pollError } = await supabase
-      .from('Polls')
-      .select('*')
+      .from('polls')
+      .select(`
+        *,
+        options(
+          *,
+          votes(user_id)
+        )
+      `)
       .eq('id', poll_id)
       .single();
 
@@ -144,53 +144,26 @@ export async function fetchPollById(poll_id: string, userId: string | undefined)
       console.error('Error fetching poll:', pollError?.message || 'Poll not found');
       return {
         poll: null,
-        options: [],
         status: 404,
         error: new Error('Poll not found')
       };
     }
 
-    // Fetch poll options
-    const { data: optionsData, error: optionsError } = await supabase
-      .from('Options')
-      .select('*')
-      .eq('poll_id', poll_id);
-
-    if (optionsError) {
-      console.error('Error fetching poll options:', optionsError.message);
-      return {
-        poll: pollData as Poll, // Return the poll data even if options fail
-        options: [],
-        status: 500,
-        error: new Error('Error fetching poll options')
-      };
-    }
+    if (dataOnly) return pollData
 
     return {
-      poll: pollData as Poll,
-      options: optionsData as Option[],
+      pollData,
       status: 200,
-      error: null
+      error: null,
     };
 
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Unexpected error:', error.message);
-      return {
-        poll: null,
-        options: [],
-        status: 500,
-        error: new Error('Unexpected error occurred')
-      };
-    } else {
-      console.error('Unexpected non-Error:', error);
-      return {
-        poll: null,
-        options: [],
-        status: 500,
-        error: new Error('An unexpected non-Error occurred')
-      };
-    }
+    console.error('Unexpected error:', (error as Error).message);
+    return {
+      poll: null,
+      status: 500,
+      error: new Error('Unexpected error occurred'),
+    };
   }
 }
 
@@ -198,9 +171,9 @@ interface OptionWithVoteCount extends Option {
   vote_count: number;
 }
 
-export async function fetchVoteCounts(pollId: string, options: Option[]): Promise<OptionWithVoteCount[] | Error> { 
+export async function fetchVoteCounts(pollData: Poll, options: Option[]) { 
   try {
-    const optionIds = await getOptionIdsByPoll(pollId);
+    const optionIds: string[] = pollData.options.map((option: any) => option.id);
   
     if (optionIds) {
       const voteData = await getVoteCountsByOptions(optionIds);
@@ -223,4 +196,22 @@ export async function fetchVoteCounts(pollId: string, options: Option[]): Promis
   } catch (e) {
     return e as Error
   }
+}
+
+export const getPollsByUserId = async (userId: string | undefined) => {
+
+  const { data: pollData, error: pollError } = await supabase
+    .from('polls')
+    .select(`
+      *,
+      options(*, votes(*))
+    `)
+    .eq('user_id', userId);
+
+    if (pollError || !pollData) {
+      console.error('Error fetching poll:', pollError?.message || 'Poll not found');
+      
+    }
+
+    return pollData
 }

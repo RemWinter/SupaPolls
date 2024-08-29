@@ -37,6 +37,8 @@
 	"type": "module",
 	"dependencies": {
 		"@supabase/supabase-js": "^2.45.2",
-		"d3": "^7.9.0"
+		"d3": "^7.9.0",
+		"embla-carousel-svelte": "^8.2.0",
+		"swiper": "^11.1.11"
 	}
 }

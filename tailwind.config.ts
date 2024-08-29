@@ -6,7 +6,8 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				navBackground: 'var(--background-nav-light)'
+				navBackground: 'var(--background-nav-light)',
+				brandBlue: 'var(--brand-blue)'
 			},
 			spacing: {
         'nav-height': 'var(--nav-height)',
